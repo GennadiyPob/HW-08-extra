@@ -1,84 +1,56 @@
-from datetime import date, timedelta
+# Імпортуємо необхідні модулі
+from datetime import date, datetime, timedelta
+from collections import defaultdict
 
+# Функція для отримання ім'ян та днів народження користувачів, які святкують їх у цей тиждень
 def get_birthdays_per_week(users):
-    # Визначаємо сьогоднішню дату і рік
-    today = date.today()
-    current_year = today.year
-    
-    # Створюємо словник для днів тижня
-    days_of_week = {
-        0: 'Monday',
-        1: 'Tuesday',
-        2: 'Wednesday',
-        3: 'Thursday',
-        4: 'Friday',
-        5: 'Saturday',
-        6: 'Sunday'
-    }
+    today = date.today()                #визначаємо поточний день
+    current_year = today.year           #визначаємо поточний рік
 
-    # Створюємо порожні словники для кожного дня тижня 
-    birthdays_this_week = {day: [] for day in days_of_week.values()}   #поточний тиждень
-    birthdays_next_week = {day: [] for day in days_of_week.values()}   #наступний тиждень
-   
+    # Створюємо словник для зберігання імен користувачів, впорядкованих за днями тижня
+    birthdays_per_week = defaultdict(list)
 
     if users:
-    # Ітеруємося по користувачах та їх днях народження
         for user in users:
-            name = user['name']
-            birthday = user['birthday']
-            
-            # Перевіряємо, чи день народження вже минув цього року
-            birthday_this_year = birthday.replace(year=current_year)
+            name = user['name']  # Отримуємо ім'я користувача
+            birthday = user['birthday']  # Отримуємо день народження користувача
+            birthday_this_year = birthday.replace(year=current_year)  # Встановлюємо поточний рік для дня народження
+
+            # Якщо місяць народження - січень, то рік народження - поточний рік + 1, інакше - поточний рік
             if birthday.month == 1:
                 birthday_this_year = birthday.replace(year=current_year + 1)
             else:
                 birthday_this_year = birthday.replace(year=current_year)
-            
+
+            # Якщо день народження вже минув у поточному році, пропускаємо цього користувача
             if birthday_this_year < today:
                 continue
-            
+
+            # Якщо день народження випав на вихідний, переміщуємо його на понеділок
             if birthday_this_year.weekday() >= 5:
-                # Якщо день народження випав на вихідний, то відображаємо його в понеділок
                 birthday_this_year += timedelta(days=(7 - birthday_this_year.weekday()))
-    
-            # Визначаємо день тижня для дня народження
-            day_of_week = birthday.weekday()
-            print('day_of_week = ', day_of_week)
-            day_of_week = birthday.strftime('%A')
-            print('day_of_week = ', day_of_week)
-            #birthdays_next_week[days_of_week[day_of_week]].append(name)
-            #print(birthdays_next_week[days_of_week[day_of_week]].append(name))
-            
+
+            day_name = birthday_this_year.strftime('%A')  # Отримуємо назву дня тижня
+            birthdays_per_week[day_name].append(name)  # Додаємо ім'я до відповідного дня тижня
 
     else:
-        return dict()
+        return dict()  # Якщо немає користувачів, повертаємо пустий словник
 
-   
-    # Видаляємо пусті значення в словниках
-    birthdays_this_week = {key: value for key, value in birthdays_this_week.items() if value}
-    birthdays_next_week = {key: value for key, value in birthdays_next_week.items() if value}
-    # Об'єднуємо обидва словники
-    combined_birthdays = dict(birthdays_this_week, **birthdays_next_week)           
-    
-   
-             
-
-            
-        
-    return combined_birthdays
-
-# Приклад використання
+    return birthdays_per_week  # Повертаємо словник з ім'ями користувачів, впорядкованими за днями тижня
 
 if __name__ == "__main__":
-
+    # Приклад списку користувачів
     users = [
-        {"name": "Bill", "birthday": date(2023, 6, 12)},
-        {"name": "Jan", "birthday": date(1976, 1, 1)},
-        {"name": "Kim", "birthday": date(2023, 6, 15)},
-        {"name": "Alice", "birthday": date(2023, 1, 1)}
-        ]
+        {"name": "Bill", "birthday": date(2023, 6, 12).date()},
+        {"name": "Jan", "birthday": date(2023, 6, 14).date()},
+        {"name": "Kim", "birthday": date(2023, 9, 24).date()},
+        {"name": "Alice", "birthday": date(2021, 1, 1).date()}
 
+    ]
 
-    birthdays = get_birthdays_per_week(users)
-    print(birthdays)
+    result = get_birthdays_per_week(users)  # Викликаємо функцію і отримуємо результат
+    print(result)  # Виводимо результат
 
+    # Виводимо імена користувачів відповідно до днів тижня
+    for day_name, names in result.items():
+        print(f"{day_name}: {', '.join(names)}")
